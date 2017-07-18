@@ -3,7 +3,6 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/mqu/openldap"
@@ -17,15 +16,18 @@ type userStruct struct {
 	USERNAME string
 }
 
-var ldapServer string   // LDAP SERVER
-var ldapDN string       // LDAP DN
-var ldapUser string     // LDAP Username
-var ldapPassword string // LDAP Password
+var LdapServer string   // LDAP SERVER
+var LdapDN string       // LDAP DN
+var LdapUser string     // LDAP Username
+var LdapPassword string // LDAP Password
+var LdapBase string     // LDAP Base
+var ldap *openldap.Ldap
 
 func init() {
+
 	rtr := mux.NewRouter()
-	rtr.HandleFunc("/versions", apiVersions).Methods("GET")
-	rtr.HandleFunc("/api", apiVersions).Methods("GET")
+	rtr.HandleFunc("/versions", apiVersion).Methods("GET")
+	rtr.HandleFunc("/api", apiVersion).Methods("GET")
 	rtr.HandleFunc("/api/v0", apiV0Version).Methods("GET")
 	rtr.HandleFunc("/api/v0/version", apiV0Version).Methods("GET")
 
@@ -33,11 +35,9 @@ func init() {
 
 	//rtr.HandleFunc("/user/dieter/profile", api_user_profile).Methods("GET")
 	http.Handle("/", rtr)
-
-	initLDAP()
 }
 
-func apiVersions(w http.ResponseWriter, r *http.Request) {
+func apiVersion(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.Header().Set("Api-Service", "-")
 	w.Write([]byte("/api/v0"))
@@ -53,8 +53,6 @@ func apiV0GetUser(w http.ResponseWriter, r *http.Request) {
 	var params = mux.Vars(r)
 	var username = params["username"]
 
-	var user userStruct
-
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.Header().Set("Api-Service", "-")
 
@@ -63,44 +61,39 @@ func apiV0GetUser(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(string(d)))
 }
 
-func initLDAP() {
-	ldap, err := openldap.Initialize(ldapServer)
+func InitLDAP() bool {
+	ldap, err := openldap.Initialize("ldap://" + LdapServer)
 
 	if err != nil {
 		fmt.Printf("LDAP::Initialize() : connection error\n")
-		return
+		return false
 	}
 
 	ldap.SetOption(openldap.LDAP_OPT_PROTOCOL_VERSION, openldap.LDAP_VERSION3)
 
-	err = ldap.Bind(ldapUser, ldapPassword)
+	err = ldap.Bind(LdapUser, LdapPassword)
 	if err != nil {
 		fmt.Printf("LDAP::Bind() : bind error\n")
 		fmt.Println(err)
-		return
+		return false
 	}
 	defer ldap.Close()
+
+	return true
 }
 
-func searchLDAP(username string) string {
+func searchLDAP(username string) *openldap.LdapSearchResult {
 	var scope = openldap.LDAP_SCOPE_SUBTREE // LDAP_SCOPE_BASE, LDAP_SCOPE_ONELEVEL, LDAP_SCOPE_SUBTREE
 	var filter = "cn=" + username
 	var attributes = []string{"cn", "uuid", "givenname", "mail"}
+	var result *openldap.LdapSearchResult
+	var err error
 
-	result, err := ldap.SearchAll(base, scope, filter, attributes)
+	result, err = ldap.SearchAll(LdapBase, scope, filter, attributes)
 
 	if err != nil {
-		fmt.Println("LDAP Search Error: %s", err)
-		return
+		fmt.Println("LDAP Search error: ", err)
 	}
 
-	// Only Debug
-	fmt.Printf("# num results : %d\n", result.Count())
-	fmt.Printf("# search : %s\n", result.Filter())
-	fmt.Printf("# base : %s\n", result.Base())
-	fmt.Printf("# attributes : [%s]\n", strings.Join(result.Attributes(), ", "))
-
-	var res = result.Attributes()
-
-	return res
+	return result
 }
