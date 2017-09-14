@@ -1,5 +1,7 @@
 # go-ldapjson
 
+[![Build Status](https://travis-ci.org/AVENTER-UG/go-ldapjson.svg?branch=master)](https://travis-ci.org/AVENTER-UG/go-ldapjson)
+
 go-ldapjson is a API gateway that will give a easy and JSON based access to authenticate user against LDAP.
 
 To support our development, please take a small donation.
