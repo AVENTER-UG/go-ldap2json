@@ -18,10 +18,18 @@ type userStruct struct {
 	USERNAME string
 }
 
-var LdapServer string   // LDAP SERVER
-var LdapUser string     // LDAP Username
-var LdapPassword string // LDAP Password
-var LdapBase string     // LDAP Base
+// LDAPServer is the IP Address and Port of the LDAP Server
+var LDAPServer string
+
+// LDAPUser is the Username to authenticate against LDAP
+var LDAPUser string
+
+// LDAPPassword is the Passwort to authenticate against LDAP
+var LDAPPassword string
+
+// LDAPBase is the base
+var LDAPBase string
+
 var ldap *openldap.Ldap
 
 func init() {
@@ -61,17 +69,17 @@ func apiV0GetUser(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(d)
 }
 
-func InitLDAP() {
+func initLDAP() {
 	var err error
-	ldap, err = openldap.Initialize("ldap://" + LdapServer)
+	ldap, err = openldap.Initialize("ldap://" + LDAPServer)
 
-	fmt.Println("Init LDAP: " + LdapServer)
+	fmt.Println("Init LDAP: " + LDAPServer)
 
 	logError(err)
 
 	ldap.SetOption(openldap.LDAP_OPT_PROTOCOL_VERSION, openldap.LDAP_VERSION3)
 
-	err = ldap.Bind(LdapUser, LdapPassword)
+	err = ldap.Bind(LDAPUser, LDAPPassword)
 	logError(err)
 
 	defer ldap.Close()
