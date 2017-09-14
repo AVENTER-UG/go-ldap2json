@@ -10,7 +10,12 @@ To support our development, please take a small donation.
 **LDAP_USER** and **LDAP_PASSWORD** is the user to __use__ LDAP not to authenticate against. 
 
 ```
-go run init.go API_SERVERPORT=8888 LDAP_SERVER=localhost:1368 LDAP_DN= LDAP_USER= LDAP_PASSWORD= LDAP_BASE=
+go run init.go API_SERVERPORT=8888 LDAP_SERVER=localhost:1389 BASE="ou=users, o=company" LDAP_USER= LDAP_PASSWORD= 
+```
+### How to use by curl
+
+```
+curl -X POST -d '{"USERNAME":"dieter"}' http://127.0.0.1:10777/api/v0/getUser
 ```
 
 ### LDAP Test Server

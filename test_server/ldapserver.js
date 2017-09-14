@@ -2,12 +2,18 @@ var ldap = require('./ldapjs');
 
 var server = ldap.createServer();
 
-server.search('o=example', function(req, res, next) {
+server.search('ou=users, o=company', function(req, res, next) {
+
+  console.log("Search: " + req.dn.toString())
+
   var obj = {
     dn: req.dn.toString(),
     attributes: {
-      objectclass: ['organization', 'top'],
-      o: 'example'
+      objectclass: ['person', 'top'],
+      o: 'company',
+      cn: 'andreas',
+      sn: 'peters',
+      email: 'nope@<blub>',
     }
   };
 
